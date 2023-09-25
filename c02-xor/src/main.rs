@@ -38,20 +38,18 @@ fn parse_hex(input: &str) -> Vec<u8> {
     data
 }
 
+fn read_hex_line() -> Vec<u8> {
+    let mut input = String::new();
+    io::stdin()
+        .read_line(&mut input)
+        .expect("Failed to read line");
+
+    parse_hex(&input)
+}
+
 fn main() {
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read line");
-
-    let bytes_a = parse_hex(&input);
-
-    let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read line");
-
-    let bytes_b = parse_hex(&input);
+    let bytes_a = read_hex_line();
+    let bytes_b = read_hex_line();
 
     if bytes_a.len() != bytes_b.len() {
         println!("Not equal lengths");
@@ -67,3 +65,6 @@ fn main() {
         print!("{:X}", output[i]);
     }
 }
+
+// 746865206b696420646f6e277420706c6179
+// 746865206B696420646F6E277420706C6179
