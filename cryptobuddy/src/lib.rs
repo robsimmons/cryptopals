@@ -1,4 +1,7 @@
-use std::{io, str::FromStr};
+use std::fs::File;
+use std::io::{self, BufRead};
+use std::path::Path;
+use std::str::FromStr;
 
 pub const CHAR_LOWER_A: u8 = 97;
 pub const CHAR_LOWER_F: u8 = 102;
@@ -123,4 +126,53 @@ pub fn bytes_to_base64(bytes: &Vec<u8>) -> String {
         result.push('=');
         result
     }
+}
+
+pub fn get_expected_frequencies() -> Result<[f64; 256], String> {
+    let count_csv = Path::new("../frequency_counts.txt");
+    let count_file = File::open(count_csv).unwrap();
+    let count_file_lines = io::BufReader::new(count_file).lines();
+    let mut total_freq: f64 = 0.0;
+    let mut result: [f64; 256] = [0.0; 256];
+    for line_or_error in count_file_lines {
+        let untrimmed_line = line_or_error.unwrap();
+        let line = untrimmed_line.trim();
+        if let Some(index) = line.find(',') {
+            let char_value: usize = line[..index].parse().unwrap();
+            let freq_value: f64 = line[index + 1..].parse().unwrap();
+            if result[usize::from(char_value)] != 0.0 {
+                let msg = format!("Multiple frequency counts given for {char_value}");
+                return Err(msg);
+            }
+            total_freq = total_freq + freq_value;
+            result[usize::from(char_value)] = freq_value;
+        }
+    }
+    for i in 0..256 {
+        result[i] = result[i] / total_freq;
+    }
+    Ok(result)
+}
+
+pub fn test_string_frequencies(expected: &[f64; 256], str: &Vec<u8>) -> f64 {
+    let mut actual: [f64; 256] = [0.0; 256];
+    let len = str.len() as f64;
+
+    for i in 0..str.len() {
+        actual[usize::from(str[i])] = actual[usize::from(str[i])] + 1.0;
+    }
+
+    let mut error = 0.0;
+    for i in 0..256 {
+        let observed = actual[i];
+        let expected_observations = expected[i] * len;
+        let diff = observed - expected_observations;
+
+        if observed > 0.0 && expected_observations == 0.0 {
+            return std::f64::MAX;
+        } else if expected_observations > 0.0 {
+            error += diff * diff / expected_observations;
+        }
+    }
+    error
 }
