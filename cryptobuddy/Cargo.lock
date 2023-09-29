@@ -3,12 +3,5 @@
 version = 3
 
 [[package]]
-name = "c01-hex-base64"
-version = "0.1.0"
-dependencies = [
- "cryptobuddy",
-]
-
-[[package]]
 name = "cryptobuddy"
 version = "0.1.0"

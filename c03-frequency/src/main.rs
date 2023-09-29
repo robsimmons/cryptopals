@@ -1,5 +1,6 @@
 use std::fs;
 use std::path::Path;
+use cryptobuddy;
 
 fn main() {
     let short_stories = Path::new("../../sherlock/stories");
