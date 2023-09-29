@@ -5,3 +5,10 @@ version = 3
 [[package]]
 name = "c02-xor"
 version = "0.1.0"
+dependencies = [
+ "cryptobuddy",
+]
+
+[[package]]
+name = "cryptobuddy"
+version = "0.1.0"

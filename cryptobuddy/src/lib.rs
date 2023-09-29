@@ -40,6 +40,15 @@ fn sextet_to_base64_char(c: u8) -> char {
     panic!("Invalid 6-bit sextet {c}");
 }
 
+pub fn bytes_to_hex(bytes: &Vec<u8>) -> String {
+    let mut output = String::new();
+    for byte in bytes {
+        let byte_str = format!("{:x}", byte);
+        output.push_str(&byte_str);
+    }
+    output
+}
+
 pub fn parse_hex_string(str: &str) -> Result<Vec<u8>, String> {
     let input_bytes = str.trim().as_bytes();
     let input_len = input_bytes.len();
