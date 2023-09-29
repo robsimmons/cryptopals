@@ -1,4 +1,4 @@
-use std::io;
+use std::{io, str::FromStr};
 
 pub const CHAR_LOWER_A: u8 = 97;
 pub const CHAR_LOWER_F: u8 = 102;
@@ -7,20 +7,21 @@ pub const CHAR_UPPER_F: u8 = 70;
 pub const CHAR_0: u8 = 48;
 pub const CHAR_9: u8 = 57;
 
-pub fn hex_character_to_u8(c: u8) -> u8 {
+fn hex_character_to_u8(c: u8) -> Result<u8, String> {
     if CHAR_LOWER_A <= c && c <= CHAR_LOWER_F {
-        return c - CHAR_LOWER_A + 10;
+        return Ok(c - CHAR_LOWER_A + 10);
     }
     if CHAR_UPPER_A <= c && c <= CHAR_UPPER_F {
-        return c - CHAR_UPPER_A + 10;
+        return Ok(c - CHAR_UPPER_A + 10);
     }
     if CHAR_0 <= c && c <= CHAR_9 {
-        return c - CHAR_0;
+        return Ok(c - CHAR_0);
     }
-    panic!("Invalid char (code {c}) in input");
+    let msg = format!("Invalid char (code {c}) in input");
+    Err(msg)
 }
 
-pub fn sextet_to_base64_char(c: u8) -> char {
+fn sextet_to_base64_char(c: u8) -> char {
     if c < 26 {
         return (c + CHAR_UPPER_A) as char;
     }
@@ -33,33 +34,39 @@ pub fn sextet_to_base64_char(c: u8) -> char {
     if c == 63 {
         return '+';
     }
-    return '/';
+    if c == 64 {
+        return '/';
+    }
+    panic!("Invalid 6-bit sextet {c}");
 }
 
-pub fn parse_hex_string(str: &str) -> Vec<u8> {
+pub fn parse_hex_string(str: &str) -> Result<Vec<u8>, String> {
     let input_bytes = str.trim().as_bytes();
     let input_len = input_bytes.len();
     let byte_len = input_len / 2;
     if byte_len * 2 != input_len {
-        panic!("Input string {str} does not have a valid (even) number of characters");
+        let msg = format!("Input string {str} does not have a valid (even) number of characters");
+        return Err(msg);
     }
 
     let mut result: Vec<u8> = Vec::with_capacity(byte_len);
     for i in 0..byte_len {
-        let big = hex_character_to_u8(input_bytes[i * 2]);
-        let small = hex_character_to_u8(input_bytes[1 + (i * 2)]);
+        let big = hex_character_to_u8(input_bytes[i * 2])?;
+        let small = hex_character_to_u8(input_bytes[1 + (i * 2)])?;
         result.push(big << 4 | small);
     }
-    result
+    Ok(result)
 }
 
-pub fn read_hex_line() -> Vec<u8> {
+pub fn read_hex_line() -> Result<Vec<u8>, String> {
     let mut input = String::new();
-    io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read line as expected");
 
-    parse_hex_string(&input)
+    if let Ok(_) = io::stdin().read_line(&mut input) {
+        parse_hex_string(&input)
+    } else {
+        let msg = String::from_str("Failed to read line as expected").unwrap();
+        Err(msg)
+    }
 }
 
 pub fn bytes_to_base64(bytes: &Vec<u8>) -> String {
@@ -70,10 +77,10 @@ pub fn bytes_to_base64(bytes: &Vec<u8>) -> String {
         let b2 = u32::from(bytes[i * 3 + 1]);
         let b3 = u32::from(bytes[i * 3 + 2]);
         let word = b1 << 16 | b2 << 8 | b3;
-        let c1 = u8::try_from(word >> 18).expect("Invariant");
-        let c2 = u8::try_from((word >> 12) & 0x3F).expect("Invariant");
-        let c3 = u8::try_from((word >> 6) & 0x3F).expect("Invariant");
-        let c4 = u8::try_from(word & 0x3F).expect("Invariant");
+        let c1 = u8::try_from(word >> 18).unwrap();
+        let c2 = u8::try_from((word >> 12) & 0x3F).unwrap();
+        let c3 = u8::try_from((word >> 6) & 0x3F).unwrap();
+        let c4 = u8::try_from(word & 0x3F).unwrap();
         result.push(sextet_to_base64_char(c1));
         result.push(sextet_to_base64_char(c2));
         result.push(sextet_to_base64_char(c3));
@@ -87,8 +94,8 @@ pub fn bytes_to_base64(bytes: &Vec<u8>) -> String {
     } else if regular_end + 1 == bytes.len() {
         let b1 = u32::from(bytes[regular_end]);
         let word: u32 = b1 << 16;
-        let c1 = u8::try_from(word >> 18).expect("Invariant");
-        let c2 = u8::try_from((word >> 12) & 0x3F).expect("Invariant");
+        let c1 = u8::try_from(word >> 18).unwrap();
+        let c2 = u8::try_from((word >> 12) & 0x3F).unwrap();
         result.push(sextet_to_base64_char(c1));
         result.push(sextet_to_base64_char(c2));
         result.push('=');
@@ -98,9 +105,9 @@ pub fn bytes_to_base64(bytes: &Vec<u8>) -> String {
         let b1 = u32::from(bytes[regular_end]);
         let b2 = u32::from(bytes[regular_end + 1]);
         let word: u32 = b1 << 16 | b2 << 8;
-        let c1 = u8::try_from(word >> 18).expect("Invariant");
-        let c2 = u8::try_from((word >> 12) & 0x3F).expect("Invariant");
-        let c3 = u8::try_from((word >> 6) | 0x3F).expect("Invariant");
+        let c1 = u8::try_from(word >> 18).unwrap();
+        let c2 = u8::try_from((word >> 12) & 0x3F).unwrap();
+        let c3 = u8::try_from((word >> 6) | 0x3F).unwrap();
         result.push(sextet_to_base64_char(c1));
         result.push(sextet_to_base64_char(c2));
         result.push(sextet_to_base64_char(c3));
