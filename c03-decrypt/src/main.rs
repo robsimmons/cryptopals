@@ -11,7 +11,7 @@ fn main() {
         for i in 0..copy.len() {
             copy[i] = copy[i] ^ ch;
         }
-        let error = cryptobuddy::test_string_frequencies(&expected, &copy);
+        let error: f64 = cryptobuddy::test_string_frequencies(&expected, &copy);
         println!("XOR with {ch} - error is {:.2}", error);
         if error < 1000.0 {
             let str = str::from_utf8(&copy).expect("Nope, didn't work");
