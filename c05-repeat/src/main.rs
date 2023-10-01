@@ -16,7 +16,7 @@ fn main() {
         }
         let bytes = input.as_bytes();
         let key = "ICE".as_bytes();
-        let encoded = xor_bytes_with_key(bytes, key, offset);
+        let encoded = cryptobuddy::xor_bytes_with_key(bytes, key, offset);
         print!("{}", cryptobuddy::bytes_to_hex(&encoded));
         offset += input.len();
     }

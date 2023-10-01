@@ -177,7 +177,7 @@ pub fn test_string_frequencies(expected: &[f64; 256], str: &Vec<u8>) -> f64 {
     error
 }
 
-fn xor_bytes_with_key(bytes: &[u8], key: &[u8], offset: usize) -> Vec<u8> {
+pub fn xor_bytes_with_key(bytes: &[u8], key: &[u8], offset: usize) -> Vec<u8> {
     let mut result = Vec::with_capacity(bytes.len());
 
     for i in 0..bytes.len() {
