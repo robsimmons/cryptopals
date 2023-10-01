@@ -46,7 +46,7 @@ fn sextet_to_base64_char(c: u8) -> char {
 pub fn bytes_to_hex(bytes: &Vec<u8>) -> String {
     let mut output = String::new();
     for byte in bytes {
-        let byte_str = format!("{:x}", byte);
+        let byte_str = format!("{:02x}", byte);
         output.push_str(&byte_str);
     }
     output
@@ -175,4 +175,14 @@ pub fn test_string_frequencies(expected: &[f64; 256], str: &Vec<u8>) -> f64 {
         }
     }
     error
+}
+
+fn xor_bytes_with_key(bytes: &[u8], key: &[u8], offset: usize) -> Vec<u8> {
+    let mut result = Vec::with_capacity(bytes.len());
+
+    for i in 0..bytes.len() {
+        result.push(bytes[i] ^ key[(i + offset) % key.len()]);
+    }
+
+    result
 }
